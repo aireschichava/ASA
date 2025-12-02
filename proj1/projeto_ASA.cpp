@@ -1,192 +1,153 @@
-// g++ -std=c++11 -O3 -Wall project_test.cpp -lm -o project_test
+//g++ -std=c++11 -O3 -Wall solution.cpp -lm -o solution
 #include <iostream>
 #include <vector>
-#include <list>
 #include <string>
-#include <string>
-#include <unordered_map>
+#include <algorithm>
+
 using namespace std;
 
 int n;
-
-struct node {
-  int _potential;
-  int _class;
+struct Node {
+  int pot;
+  int type;
 };
 
-// a lista é ma idea
-struct pacote {
-  int _pos;
-  int _energy_l, _energy_r;
-  list<int> path;
+vector<Node> chain;
+vector<vector<long long>> m;
+vector<vector<int>> s;
+
+// tabela de afinidades
+int affinity[5][5] = {
+  {1, 3, 1, 3, 1}, 
+  {5, 1, 0, 1, 1}, 
+  {0, 1, 0, 4, 1}, 
+  {1, 3, 2, 3, 1}, 
+  {1, 1, 1, 1, 1}  
 };
 
-// struct pacote {
-//   int _pos;
-//   int _energy_l, _energy_r;
-//   vector<int> last; // [i, j, index] para encontrar o ultimo, e dps no fim reconstruo
-// };
+// ordenado lexicograficamente e numericamente tmb (vai dar jeito mais tarde mas n importa mt)
+int get_type_id(char c) {
+  if (c == 'P') return 0;
+  if (c == 'N') return 1;
+  if (c == 'A') return 2;
+  if (c == 'B') return 3;
+  return 4; // devolve "T" (isto) n deve acontecer
+}
 
-vector<node> chain;
-string class_str;
-
-vector<vector<list<pacote>>> sol;
-
-vector<int> afinity = {
-1 ,3, 1, 3,
-5, 1, 0, 1,
-0, 1, 0, 4,
-1, 3, 2, 3,
-};
-
-void get_variables(){
-  cin >> n;
-
-  chain.resize(n);
-
-  for (int i = 0; i< n; i++){
-    cin >> chain[i]._potential;
-  }
+long long get_pot(int left, int k, int right) {
+  long long p_left = chain[left].pot;
+  long long p_k = chain[k].pot;
+  long long p_right = chain[right].pot;
   
-  cin >> class_str;
+  int t_left = chain[left].type;
+  int t_k = chain[k].type;
+  int t_right = chain[right].type;
 
-  for (int i = 0; i < n; i++){
-    switch (class_str[i])
-    {
-    case 'P':
-      chain[i]._class = 0;
-      break;
-    case 'N':
-      chain[i]._class = 1;
-      break;
-    case 'A':
-      chain[i]._class = 2;
-      break;
-    case 'B':
-      chain[i]._class = 3;
-      break;
-    default:
-      // n sei como dar handle
-      break;
-    }
-  }
+  return (p_left * affinity[t_left][t_k] * p_k) + (p_k * affinity[t_k][t_right] * p_right);
 }
 
-int get_afinity(int a, int b){
-  return afinity[a*4 + b];
+// devolver caminho usando recursao e a tabela de caminhos
+void get_path(int i, int j, vector<int>& path) {
+  if (i > j) return;
+  int k = s[i][j];
+
+  get_path(i, k - 1, path);
+  get_path(k + 1, j, path);
+
+  path.push_back(k);
 }
 
-void print_pacotes(pacote p){
-  cout << 
-  "\tENERGY_L:" << p._energy_l << " " << 
-  "ENERGY_R:" << p._energy_r << " " <<
-  "NODE:" << chain[p._pos]._potential << " " << chain[p._pos]._class << " "
-  "PATH:";
-  for (auto x: p.path){
-    cout << x << " ";
-  }
-  cout << "\n";
-}
-
-int main() {
-  std::ios::sync_with_stdio(0);
-  std::cin.tie(0);
-
-  get_variables();
-
-  sol.resize(n, vector<list<pacote>>(n));
-
-  int energy = 0;
-
-  list<int> path;
+bool is_better(int i, int j, int k1, int k2) {
+  // escolher o melhor caminho (menor lexicograficamente ==> menor numero)
+  vector<int> p1, p2;
   
-  for (int i = 0; i < n; i++){
-    cout << "i:" << i << "\n";
-    for (int j = 0; j < n - i; j++){
-      cout << "j:" << j << "\n";
-      if (i == 0){
-        sol[j][j].push_back(pacote{j,0,0,{}});
-        continue;
-      }
-            
-      energy = 0;
-      
-      for (int k = 1; k < i + 1; k++){                
-        list<pacote> list1 = sol[j][j + i - k];
-        list<pacote> list2 = sol[j + i - k + 1][j + i];
+  s[i][j] = k1;
+  get_path(i, j, p1);
+  
+  s[i][j] = k2;
+  get_path(i, j, p2);
+  
+  return p1 < p2;
+}
 
-        cout << "list1:" << "\n";
+void func() {
+  int size = n + 2;
+  // preparar a tabela de caminho e potencias
+  m.assign(size, vector<long long>(size, 0));
+  s.assign(size, vector<int>(size, 0));
 
-        for(auto p: list1){
-          print_pacotes(p);
-        }
+  for (int L = 1; L <= n; L++) {
+    for (int i = 1; i <= n - L + 1; i++) {
+        int j = i + L - 1;
+        // calcular a maxima potencia para cada caminho
+        m[i][j] = -1; 
 
-        cout << "list2:" << "\n";
+      for (int k = i; k <= j; k++) {
+          // calcular a potencia
+          long long pot = m[i][k-1] + m[k+1][j] + get_pot(i-1, k, j+1);
 
-        for(auto p: list2){
-          print_pacotes(p);
-        }
-
-        cout << "result:" << "\n";
-        
-        for(pacote p1: list1){
-          for (pacote p2: list2){
-
-            list<int> path_aux, path1, path2;
-            path_aux.insert(path_aux.end(), p1.path.begin(), p1.path.end());
-            path_aux.insert(path_aux.end(), p2.path.begin(), p2.path.end());
-            
-            path1 = path_aux;
-            path1.push_back(p1._pos);
-            path2 = path_aux;
-            path2.push_back(p2._pos);
-            
-            pacote left{
-              p2._pos,
-              p1._energy_l + chain[p1._pos]._potential, 
-              p1._energy_r + chain[p1._pos]._potential * chain[p2._pos]._potential * 
-              get_afinity(chain[p1._pos]._class, chain[p2._pos]._class),
-              path1
-            };
-
-            pacote right{
-              p1._pos,
-              p2._energy_l + chain[p1._pos]._potential * chain[p2._pos]._potential * 
-              get_afinity(chain[p1._pos]._class, chain[p2._pos]._class),
-              p2._energy_r + chain[p2._pos]._potential,
-              path2
-            };
-            
-            sol[j][i+j].push_back(right);
-            sol[j][i+j].push_back(left);
-            
-            print_pacotes(left);
-            print_pacotes(right);
-            
-            if (i == n - 1){
-              int new_energy_r = right._energy_l + right._energy_r + chain[right._pos]._potential * 2;
-              int new_energy_l = left._energy_l + left._energy_r + chain[left._pos]._potential * 2;
-              int maxed = max(new_energy_l, new_energy_r);
-
-              if (maxed > energy){
-                energy = maxed;
-                if (new_energy_l > new_energy_r){
-                  path = path1;
-                  path.push_back(p2._pos);
-                } else {
-                  path = path2;
-                  path.push_back(p1._pos);
-                }
-              }
-            }
+          // guardar a maior potencia e melhor caminho
+          if (pot > m[i][j]) {
+            m[i][j] = pot; // guardar a potencia
+            s[i][j] = k; // guardar o caminho
+          } 
+          else if (pot == m[i][j]) {
+          // no caso de ter varios caminhos possiveis escolher o lexicograficamente menor
+          if (is_better(i, j, k, s[i][j])) {
+            s[i][j] = k;
           }
         }
       }
     }
   }
-  cout << energy << "\n";
-  for (auto x: path){
-    cout << x + 1 << " ";
+}
+
+// chegar ao caminho usando recursão e tabela de caminhos
+void print_solution(int i, int j) {
+  if (i > j) return;
+  int k = s[i][j];
+  print_solution(i, k - 1);
+  print_solution(k + 1, j);
+  cout << k << (k == s[1][n] && j == n ? "" : " ");
+}
+
+int main() {
+  // Ler os inputs
+  std::ios::sync_with_stdio(0);
+  std::cin.tie(0);
+
+  if (!(cin >> n)) return 0;
+
+  // por a cadeia com inicio e fim "T"
+
+  chain.resize(n + 2);
+
+  chain[0] = {1, 4}; 
+
+  for (int i = 1; i <= n; i++) {
+      cin >> chain[i].pot;
   }
+
+  chain[n + 1] = {1, 4}; 
+
+  string classes;
+  cin >> classes;
+  for (int i = 0; i < n; i++) {
+      chain[i+1].type = get_type_id(classes[i]);
+  }
+
+  func();
+
+  cout << m[1][n] << endl;
+  
+  vector<int> final_path;
+  get_path(1, n, final_path);
+  
+  for(size_t i = 0; i < final_path.size(); i++) {
+      cout << final_path[i] << (i == final_path.size() - 1 ? "" : " ");
+  }
+
+  cout << endl;
+
   return 0;
 }
