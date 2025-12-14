@@ -1,0 +1,12 @@
+# Binaries
+project
+*.o
+*.dSYM
+
+# OS generated
+.DS_Store
+
+# Test generation artifacts
+stress.in
+stress.out
+gen_test.py
