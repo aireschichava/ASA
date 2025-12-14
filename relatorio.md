@@ -60,6 +60,8 @@ Complexidade Espacial Total: $O(N^2 + E)$.
 
 ## 3. Avaliação Experimental
 
+![Tempo vs N³](performance_graph.png)
+
 ### Resultados Experimentais
 Os tempos foram medidos num MacBook Pro (macOS, CPU Apple M-series) executando `./project` sobre DAGs gerados por `python3 gen_test.py N` (densidade padrão de 0.3). Cada instância é alimentada diretamente no binário, e o tempo é obtido com `time.perf_counter`. Os valores completos estão em `timings.csv`.
 
