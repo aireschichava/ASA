@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Relatório Projecto ASA</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Relatório Projecto ASA</h1>
+</header>
+<h1 id="relatório-1º-projecto-asa-20252026">Relatório 1º projecto ASA
+2025/2026</h1>
+<p><strong>Grupo:</strong> ALxxx/TPyyy <strong>Aluno(s):</strong> Nome1
+(97xxx) e Nome2 (102xxx)</p>
+<hr />
+<h2 id="descrição-do-problema-e-da-solução">Descrição do Problema e da
+Solução</h2>
+<p>O problema consiste em calcular o número de caminhos distintos entre
+pares de cruzamentos num grafo orientado acíclico (DAG) e, com base
+nisso, atribuir rotas a camiões. A solução proposta utiliza uma
+abordagem iterativa baseada na ordenação topológica para garantir que os
+nós são processados na ordem correta de dependência, evitando recursão e
+problemas de stack overflow.</p>
+<p>Para otimizar o uso da cache e memória, implementámos um esquema de
+<strong>Programação Dinâmica por Lotes (Batched DP)</strong>.
+Processamos os nós de origem em blocos (ex: 128), mantendo contadores de
+caminhos apenas para o lote atual. A propagação dos caminhos é feita
+seguindo a ordem topológica linearizada (algoritmo de Kahn), onde para
+cada nó somamos os caminhos vindos dos seus antecessores e propagamos
+para os sucessores, atualizando os contadores módulo <span
+class="math inline"><em>M</em></span>.</p>
+<h2 id="análise-teórica">Análise Teórica</h2>
+<p>O algoritmo divide-se nas seguintes etapas principais:</p>
+<ol type="1">
+<li><p><strong>Leitura do Grafo e Cálculo de Graus de Entrada</strong>:
+Iteração sobre as <span class="math inline"><em>K</em></span> arestas
+para construir a lista de adjacências e vetor de graus.
+<strong>Complexidade:</strong> <span
+class="math inline"><em>O</em>(<em>N</em> + <em>K</em>)</span></p></li>
+<li><p><strong>Ordenação Topológica (Algoritmo de Kahn)</strong>:
+Inserção de nós com grau 0 numa fila e remoção iterativa, visitando cada
+aresta uma vez. <strong>Complexidade:</strong> <span
+class="math inline"><em>O</em>(<em>N</em> + <em>K</em>)</span></p></li>
+<li><p><strong>Processamento por Lotes (Core da Solução)</strong>: Para
+cada bloco de origens, percorremos o grafo na ordem topológica. No pior
+caso (grafo denso), processamos todas as arestas para cada lote. Sendo
+<span class="math inline"><em>B</em></span> o tamanho do lote, temos
+<span class="math inline"><em>N</em>/<em>B</em></span> iterações
+externas. <strong>Complexidade:</strong> <span
+class="math inline">$O(\frac{N}{B} \times (N + K))$</span></p></li>
+</ol>
+<p><strong>Complexidade Global da Solução:</strong> Dado que <span
+class="math inline"><em>B</em></span> é uma constante, a complexidade
+simplifica para: <span
+class="math display"><em>O</em>(<em>N</em> × (<em>N</em> + <em>K</em>))</span></p>
+<p>No pior caso (grafo denso onde <span
+class="math inline"><em>K</em> ≈ <em>N</em><sup>2</sup></span>), temos
+<span class="math inline"><em>O</em>(<em>N</em><sup>3</sup>)</span>.
+Para grafos esparsos, aproxima-se de <span
+class="math inline"><em>O</em>(<em>N</em><sup>2</sup>)</span>.</p>
+<h2 id="avaliação-experimental-dos-resultados">Avaliação Experimental
+dos Resultados</h2>
+<p>As experiências foram realizadas num computador com CPU Apple
+M-series, utilizando instâncias geradas aleatoriamente com densidade
+constante. O objetivo foi verificar a correlação entre o tempo de
+execução e a complexidade teórica prevista <span
+class="math inline"><em>O</em>(<em>N</em> × (<em>N</em> + <em>K</em>))</span>.</p>
+<h3 id="tabela-de-resultados">Tabela de Resultados</h3>
+<p>Foram geradas mais de 10 instâncias de tamanho incremental.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">N (Vértices)</th>
+<th style="text-align: left;">K (Arestas)</th>
+<th style="text-align: left;">Tempo (s)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">200</td>
+<td style="text-align: left;">5937</td>
+<td style="text-align: left;">0.0172</td>
+</tr>
+<tr>
+<td style="text-align: left;">300</td>
+<td style="text-align: left;">13620</td>
+<td style="text-align: left;">0.0326</td>
+</tr>
+<tr>
+<td style="text-align: left;">400</td>
+<td style="text-align: left;">24075</td>
+<td style="text-align: left;">0.0595</td>
+</tr>
+<tr>
+<td style="text-align: left;">500</td>
+<td style="text-align: left;">37572</td>
+<td style="text-align: left;">0.0930</td>
+</tr>
+<tr>
+<td style="text-align: left;">600</td>
+<td style="text-align: left;">53856</td>
+<td style="text-align: left;">0.1348</td>
+</tr>
+<tr>
+<td style="text-align: left;">800</td>
+<td style="text-align: left;">96280</td>
+<td style="text-align: left;">0.2466</td>
+</tr>
+<tr>
+<td style="text-align: left;">1000</td>
+<td style="text-align: left;">149645</td>
+<td style="text-align: left;">0.3608</td>
+</tr>
+<tr>
+<td style="text-align: left;">1200</td>
+<td style="text-align: left;">215511</td>
+<td style="text-align: left;">0.5350</td>
+</tr>
+<tr>
+<td style="text-align: left;">1400</td>
+<td style="text-align: left;">294370</td>
+<td style="text-align: left;">0.7506</td>
+</tr>
+<tr>
+<td style="text-align: left;">1600</td>
+<td style="text-align: left;">384045</td>
+<td style="text-align: left;">0.9868</td>
+</tr>
+<tr>
+<td style="text-align: left;">2000</td>
+<td style="text-align: left;">599803</td>
+<td style="text-align: left;">1.6834</td>
+</tr>
+<tr>
+<td style="text-align: left;">2200</td>
+<td style="text-align: left;">724530</td>
+<td style="text-align: left;">1.9516</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gráfico-de-desempenho">Gráfico de Desempenho</h3>
+<p>O gráfico abaixo apresenta o Tempo Real (eixo YY) em função da
+Complexidade Teórica <span
+class="math inline"><em>N</em> × (<em>N</em> + <em>K</em>)</span> (eixo
+XX).</p>
+<figure>
+<img src="performance_graph.svg" alt="Tempo vs Complexidade" />
+<figcaption aria-hidden="true">Tempo vs Complexidade</figcaption>
+</figure>
+<p>A linearidade observada no gráfico confirma que a implementação segue
+a previsão teórica.</p>
+</body>
+</html>

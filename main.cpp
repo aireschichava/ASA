@@ -12,12 +12,17 @@ int main() {
   cin.tie(NULL);
 
   int N, M, m1, m2, K;
+  // Parse input until EOF. N is the number of intersections.
   while (cin >> N) {
+    // Read total trucks (M), range of trucks to report (m1, m2), and number of
+    // roads (K)
     cin >> M >> m1 >> m2 >> K;
 
     vector<vector<int>> adj(N + 1);
     vector<int> in_degree(N + 1, 0);
 
+    // Build the graph using adjacency list.
+    // Also compute in-degrees for topological sort.
     for (int i = 0; i < K; ++i) {
       int u, v;
       cin >> u >> v;
@@ -25,6 +30,9 @@ int main() {
       in_degree[v]++;
     }
 
+    // 1. Topological Sort (Kahn's Algorithm)
+    // A topological sort is required to process nodes in a valid dependency
+    // order (DAG).
     vector<int> topo_order;
     topo_order.reserve(N);
     queue<int> q;
@@ -47,11 +55,13 @@ int main() {
       }
     }
 
+    // Verify that the graph is a DAG (Directed Acyclic Graph)
     if (static_cast<int>(topo_order.size()) != N) {
       cerr << "Cycle detected in input graph.\n";
       return 0;
     }
 
+    // Map each node to its position in the topological order for quick lookups.
     vector<int> topo_pos(N + 1, 0);
     for (int i = 0; i < N; ++i) {
       topo_pos[topo_order[i]] = i;
@@ -96,19 +106,7 @@ int main() {
 
         // Initialize slice
         int idx = start_node * BATCH_SIZE;
-        // We need to clear it first because it might have garbage
-        // Clearing just the relevant slots (0 to current_batch_size)
-        // But since start_node only cares about slot 'i' relative to itself in
-        // the batch logic? Actually batch_counts[u * BATCH_SIZE + k]
-        // corresponds to path from (start_base + k) to u. For start_node =
-        // start_base + i, valid path is from itself. So at u=start_node, slot i
-        // is 1. All other slots are 0.
 
-        // Note: start_node might be a destination for OTHER start nodes in the
-        // batch too (cycles? no, DAG). But in topo order, if start_node appears
-        // later, it accumulates. BUT start nodes are initialized BEFORE the
-        // sweep. To be safe, we clear the whole slice for the start_node and
-        // set the diag to 1.
         fill(batch_counts.begin() + idx,
              batch_counts.begin() + idx + current_batch_size, 0);
         fill(batch_reachable.begin() + idx,
@@ -118,30 +116,26 @@ int main() {
         batch_reachable[idx + i] = 1;
       }
 
-      // Finds min topo index
+      // Determine the earliest topological position among the start nodes in
+      // this batch. We only need to start processing from this point in the
+      // topological order.
       int min_topo_idx = N;
       for (int i = 0; i < current_batch_size; ++i) {
         min_topo_idx = min(min_topo_idx, topo_pos[start_base + i]);
       }
 
-      // Complexidade: DP quadrático neste DAG; evita soluções
-      // exponencial/subexpoencial e não depende de crescimento logarítmico.
-
+      // Process nodes in topological order to propagate path counts
       for (int idx = min_topo_idx; idx < N; ++idx) {
         int u = topo_order[idx];
 
-        // If u was not visited/initialized, it implies it's not reachable from
-        // any start node SO FAR (or it is a start node we missed? no we init
-        // start nodes). Actually, propagation sets the token. If visit_token[u]
-        // != current_token, it means no path from any start node in this batch
-        // reached u yet. AND u is not a start node (since we set token for
-        // them). So we can skip processing u entirely!
         if (visit_token[u] != current_token)
           continue;
 
         int base_idx = u * BATCH_SIZE;
 
-        // Output Generation
+        // If this node is a destination (u >= start_base) and reachable,
+        // calculate the truck ID and record the route if it's within the
+        // requested range [m1, m2].
         if (u >= start_base) {
           for (int k = 0; k < current_batch_size; ++k) {
             int s_node = start_base + k;
@@ -154,7 +148,7 @@ int main() {
           }
         }
 
-        // Propagate
+        // Propagate path counts to neighbors
         for (int v : adj[u]) {
           int v_base = v * BATCH_SIZE;
 
