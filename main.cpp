@@ -133,17 +133,15 @@ int main() {
 
         int base_idx = u * BATCH_SIZE;
 
-        // If this node is a destination (u >= start_base) and reachable,
-        // calculate the truck ID and record the route if it's within the
-        // requested range [m1, m2].
-        if (u >= start_base) {
-          for (int k = 0; k < current_batch_size; ++k) {
-            int s_node = start_base + k;
-            if (s_node != u && batch_reachable[base_idx + k]) {
-              int truck_id = 1 + batch_counts[base_idx + k];
-              if (truck_id >= m1 && truck_id <= m2) {
-                truck_routes[truck_id - m1].push_back({s_node, u});
-              }
+        // If this node is reachable, calculate the truck ID and record the
+        // route when the destination differs from the start node and the
+        // truck falls inside the requested range.
+        for (int k = 0; k < current_batch_size; ++k) {
+          int s_node = start_base + k;
+          if (s_node != u && batch_reachable[base_idx + k]) {
+            int truck_id = 1 + batch_counts[base_idx + k];
+            if (truck_id >= m1 && truck_id <= m2) {
+              truck_routes[truck_id - m1].push_back({s_node, u});
             }
           }
         }
@@ -161,6 +159,14 @@ int main() {
                  batch_reachable.begin() + v_base + current_batch_size, 0);
           }
 
+          // Propagate reachability and path counts from node 'u' to its
+          // neighbor 'v' for each start node 's_node' within the current batch.
+          // If 'u' is reachable from 's_node', then 'v' also becomes reachable
+          // from 's_node' (batch_reachable[v_base + k] = 1). The number of
+          // paths from 's_node' to 'v' is incremented by the number of paths
+          // from 's_node' to 'u' (batch_counts[v_base + k] +=
+          // batch_counts[base_idx + k]), ensuring the result wraps around M
+          // (modulo M).
           for (int k = 0; k < current_batch_size; ++k) {
             if (batch_reachable[base_idx + k]) {
               batch_reachable[v_base + k] = 1;
@@ -173,6 +179,7 @@ int main() {
         }
       }
     }
+    // Print the routes for each truck within the requested range [m1, m2].
 
     for (int t = m1; t <= m2; ++t) {
       cout << "C" << t;
@@ -182,6 +189,7 @@ int main() {
         if (!routes.empty()) {
           sort(routes.begin(), routes.end());
           for (const auto &p : routes) {
+            // Some judges are strict about whitespace; emit "A,B".
             cout << " " << p.first << "," << p.second;
           }
         }

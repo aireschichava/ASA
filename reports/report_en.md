@@ -1,7 +1,7 @@
 # ASA 2025/2026 Project 1 Report
 
-**Group:** ALxxx/TPyyy
-**Student(s):** Name1 (97xxx) and Name2 (102xxx)
+**Group:** AL114
+**Student(s):** 111179 and 110600
 
 ---
 

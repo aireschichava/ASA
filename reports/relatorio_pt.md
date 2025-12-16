@@ -1,7 +1,7 @@
 # Relatório 1º projecto ASA 2025/2026
 
-**Grupo:** ALxxx/TPyyy
-**Aluno(s):** Nome1 (97xxx) e Nome2 (102xxx)
+**Grupo:** AL114
+**Aluno(s):** 111179 e 110600
 
 ---
 

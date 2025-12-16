@@ -7,11 +7,11 @@ make -s
 printf '%s\n' 'Running tests...'
 printf '%s\n' '--------------------------------'
 
-for input in test*.in; do
+for input in tests/test*.in; do
     [ -e "$input" ] || continue
-    testname="${input%.in}"
-    output="${testname}.out"
-    myoutput="my_${testname}.out"
+    testname=$(basename "${input%.in}")
+    output="tests/${testname}.out"
+    myoutput="tests/my_${testname}.out"
 
     if [ ! -f "$output" ]; then
         printf 'Warning: no expected output for %s\n' "$input"
