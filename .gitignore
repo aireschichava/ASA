@@ -8,5 +8,7 @@ project
 
 # Test generation artifacts
 stress.in
-stress.out
-gen_test.py
+*.out
+*.py
+!gen_test.py
+ASA_2526_Template_P1.pdf
