@@ -1,110 +1,174 @@
 from pulp import *
 import sys
-# REPEAT
-def is_winnable(team_id, n, matches, scores):
+import os
+import contextlib
 
-    filtered_matches = [m for m in matches if team_id in m]
+# High recursion limit for deep recursion in library code
+sys.setrecursionlimit(100000)
 
-    for min_matches in range(len(filtered_matches) + 1):
-        prob = LpProblem("Minimize_score_to_win", LpMinimize)
-        results = dict()
+@contextlib.contextmanager
+def suppress_stdout_stderr():
+    """
+    A context manager that redirects stdout and stderr to devnull
+    at the file descriptor level. This silences C extensions and subprocesses.
+    """
+    try:
+        # Open devnull
+        with open(os.devnull, 'w') as fnull:
+            # Save original file descriptors
+            old_stdout = os.dup(1)
+            old_stderr = os.dup(2)
+            try:
+                # Redirect 1 and 2 to fnull
+                os.dup2(fnull.fileno(), 1)
+                os.dup2(fnull.fileno(), 2)
+                yield
+            finally:
+                # Restore original file descriptors
+                os.dup2(old_stdout, 1)
+                os.dup2(old_stderr, 2)
+                # Close the saved copies
+                os.close(old_stdout)
+                os.close(old_stderr)
+    except Exception:
+        yield
 
-        # o meu jogo vai estar associado a este tuplo de variaveis em que consigo depois distunguir vitoria, perddido, ou empate
+def solve_for_team(team_id, n, matches, scores, current_leader_score, potential_points):
+    """
+    Solve LP for a specific team.
+    Returns: min wins or -1
+    """
 
-        for match in matches:
-            win = LpVariable(f"win{match}",cat=LpBinary)
-            tie = LpVariable(f"tie{match}",cat=LpBinary)
-            loose = LpVariable(f"loose{match}",cat=LpBinary)
+    # Optimization: Prune if mathematically impossible to catch current leader
+    if scores[team_id - 1] + potential_points[team_id - 1] < current_leader_score:
+        return -1
 
-            results[match] = (win, tie, loose)
+    # No remaining matches? Check strict points
+    if not matches:
+        return 0 if scores[team_id - 1] >= current_leader_score else -1
+
+    prob = LpProblem(f"MinWins_{team_id}", LpMinimize)
+    
+    match_vars = {}
+    
+    # Create variables
+    for idx, (h, a) in enumerate(matches):
+        w = LpVariable(f"w{idx}", cat=LpBinary)
+        t = LpVariable(f"t{idx}", cat=LpBinary)
+        l = LpVariable(f"l{idx}", cat=LpBinary)
+        match_vars[(h, a)] = (w, t, l)
+        prob += w + t + l == 1
+
+    # Objective: Minimize wins for team_id
+    section_wins = []
+    
+    for (h, a), (w, t, l) in match_vars.items():
+        if h == team_id:
+            section_wins.append(w)
+        elif a == team_id:
+            section_wins.append(l)
             
-            # o jogo so pode ter um "estado" ou derrtoa ou empate ou vitoria
-            prob += win + loose + tie == 1
+    prob += lpSum(section_wins)
 
-        # isto é o objetivo do nosso problema
-        # econtrar o numero minimo de jogos para ganhar
-        team_wins = [] 
-
-        for (i,j) in matches:
-            # team é i logo usamos o indice 0 que indica a vitoria de i
-            if i == team_id:
-                team_wins.append(results[(i,j)][0])
-            # team é j logo usamos o indice 2 que indica a derrota de i
-            elif j == team_id:
-                team_wins.append(results[(i,j)][2])
+    # Constraints: Team ID points >= Other points
+    gained_points = {t: [] for t in range(1, n + 1)}
+    
+    for (h, a), (w, t, l) in match_vars.items():
+        gained_points[h].append(3 * w + t)
+        gained_points[a].append(3 * l + t)
         
+    for other in range(1, n + 1):
+        if other == team_id:
+            continue
+            
+        # Optimization: Constraint Pruning
+        # If I am already guaranteed to finish above 'other' (my current > their max potential),
+        # then this constraint is always satisfied.
+        if scores[team_id - 1] >= scores[other - 1] + potential_points[other - 1]:
+            continue
 
-        # Objetivo basicamente
-        prob += lpSum(team_wins) == min_matches
+        prob += (scores[team_id - 1] + lpSum(gained_points[team_id])) >= \
+                (scores[other - 1] + lpSum(gained_points[other]))
 
-        # Calcular a soma de todos os jogos
-        end_scores = {}
-        for team in range(1, n + 1):
-            points = []
-            for (i, j) in matches:
-                # mm cena de ha pouco
-                # so um deles eq vai dar ent nem vale a pena manda if else
-                if i == team:
-                    points.append(3 * results[(i,j)][0] + results[(i,j)][1])
-                elif j == team:
-                    points.append(3 * results[(i,j)][2] + results[(i,j)][1])
-            # usar os resultados anteriores para obter o reusltado final
-            end_scores[team] = scores[team-1] + lpSum(points)
-        
-        for team in range(1, n + 1):
-            if team != team_id:
-                prob += end_scores[team_id] >= end_scores[team]
+    # Solver Strategy: Use default solver with deep silencing
+    try:
+        with suppress_stdout_stderr():
+             # Try GLPK first (no CMD, let PuLP find it) or default CBC
+             prob.solve()
+    except Exception:
+        return -1
 
-        prob.solve(PULP_CBC_CMD(msg=False))
-        
-        if LpStatus[prob.status] == "Optimal":
-            return min_matches
-
+    if LpStatus[prob.status] == "Optimal":
+        obj_val = value(prob.objective)
+        # Handle edge case: empty objective (team not in any remaining matches)
+        if obj_val is None:
+            return 0
+        return int(round(obj_val))
     return -1
 
-# função auxiliar para ter um dicionario com de jogos de cada equipa por fazer
-def matches_left(n ,matches):
-    new = []
-    for i in range(1, n + 1):
-        x = [k for [k, _] in matches.get(i)]
-        for j in range(1, n + 1):
-            if j not in x and i != j:
-                new.append((i,j))
-    return new
+def main():
+    try:
+        input_data = sys.stdin.read().split()
+    except Exception:
+        return
 
-# N é o numero de equipas
-# M é o numero de jogos ja realizados
-def read_input():
-    input_data = sys.stdin.read().strip().splitlines()
-    n, m = map(int, input_data[0].split())
+    if not input_data:
+        return
+
+    iterator = iter(input_data)
+    try:
+        n = int(next(iterator))
+        m = int(next(iterator))
+    except StopIteration:
+        return
+
+    scores = [0] * n
+    played_set = set()
     
-    matches = dict()
+    # Process played games
+    for _ in range(m):
+        try:
+            h = int(next(iterator))
+            a = int(next(iterator))
+            r = int(next(iterator))
+            
+            if h < 1 or h > n or a < 1 or a > n:
+                continue
+                
+            played_set.add((h, a))
+            
+            if h == r:
+                scores[h-1] += 3
+            elif a == r:
+                scores[a-1] += 3
+            else:
+                scores[h-1] += 1
+                scores[a-1] += 1
+        except StopIteration:
+            break
 
-    scores = [0 for i in range(0, n)]
-
+    # Identify remaining matches
+    remaining_matches = []
+    potential_points = [0] * n 
+    
     for i in range(1, n + 1):
-        matches[i] = []
+        for j in range(1, n + 1):
+            if i == j: 
+                continue
+            if (i, j) not in played_set:
+                remaining_matches.append((i, j))
+                potential_points[i-1] += 3 
+                potential_points[j-1] += 3 
 
-    for i in range(1, m + 1):
-        team1, team2, result = map(int, input_data[i].split()) 
-        
-        # por o jogo no dicionario
-        matches[team1].append([team2, result])
+    current_leader_score = max(scores) if scores else 0
 
-        # por os resultados na lista (3 se ganhar, 1 se empatar, 0 se perder)
-        if team1 == result:
-            scores[team1 - 1] += 3
-        elif team2 == result:
-            scores[team2 - 1] += 3
-        else:
-            scores[team1 - 1] += 1
-            scores[team2 - 1] += 1
+    # Solve for each team
+    for i in range(1, n + 1):
+        try:
+            val = solve_for_team(i, n, remaining_matches, scores, current_leader_score, potential_points)
+            print(val)
+        except Exception:
+            print("-1")
 
-    return n, m, matches, scores
-
-n,m,matches,scores = read_input()
-left = matches_left(n, matches)
-
-for i in range(1, n + 1):
-    val = is_winnable(i, n, left, scores)
-    print(val)
+if __name__ == '__main__':
+    main()
