@@ -1,14 +1,38 @@
 # Binaries
 project
+solver
 *.o
 *.dSYM
 
 # OS generated
 .DS_Store
 
-# Test generation artifacts
-stress.in
+# Python
+__pycache__/
+*.pyc
+
+# LaTeX
+*.aux
+*.log
+*.pdf
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Test artifacts
 *.out
-*.py
-!gen_test.py
-ASA_2526_Template_P1.pdf
+*.in
+stress.in
+1.txt
+2.txt
+3.txt
+input.txt
+output.txt
+benchmark_results.csv
+timings.csv
+experiment_graph.png
+
+# Generated PDFs (unless final reports)
+# Keeping reports for now if they are final
+# EntregasCaracol/reports/*.pdf

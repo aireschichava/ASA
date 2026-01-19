@@ -1,0 +1,101 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+
+\geometry{margin=2.5cm}
+
+\title{Relatório 3º projecto ASA 2025/2026}
+\begin{document}
+
+\begin{center}
+    \textbf{\Large Relatório 3º projecto ASA 2025/2026}
+\end{center}
+\vspace{0.5cm}
+
+\noindent \textbf{Grupo:} AL114
+
+\noindent \textbf{Aluno(s):} 111179 e 110600
+
+\vspace{0.2cm}
+\hrule
+\vspace{0.5cm}
+
+\section*{Descrição do Problema e da Solução}
+
+\subsection*{Formalização do modelo linear}
+
+O problema consiste em determinar o número mínimo de vitórias necessárias para que uma equipa alvo (digamos, $k$) vença o campeonato ou termine empatada em primeiro lugar, considerando as restrições impostas pelos jogos já realizados e os que ainda faltam disputar.
+
+\subsubsection*{Variáveis do problema}
+Para cada jogo restante entre a equipa $i$ e a equipa $j$ (onde $i < j$), definimos três variáveis binárias:
+\begin{itemize}
+    \item $w_{i,j}$: 1 se a equipa $i$ vencer, 0 caso contrário.
+    \item $t_{i,j}$: 1 se houver empate, 0 caso contrário.
+    \item $l_{i,j}$: 1 se a equipa $j$ vencer, 0 caso contrário.
+\end{itemize}
+
+\subsubsection*{Restrições}
+\begin{enumerate}
+    \item \textbf{Unicidade do Resultado}: Para cada jogo $(i,j)$, a soma das variáveis deve ser 1:
+    \[ w_{i,j} + t_{i,j} + l_{i,j} = 1 \]
+    
+    \item \textbf{Restrição de Pontuação}: A pontuação final da equipa alvo $k$ deve ser maior ou igual à pontuação final de qualquer outra equipa $o$.
+    \[ P_k + \sum_{m \in Matches_k} Gains(m) \ge P_o + \sum_{m \in Matches_o} Gains(m), \quad \forall o \neq k \]
+    Onde $P$ é a pontuação atual e $Gains$ são os pontos obtidos nos jogos restantes (3, 1 ou 0).
+\end{enumerate}
+
+\subsubsection*{Função Objectivo}
+Minimizar o número de vitórias da equipa alvo $k$:
+\[ \min \sum_{j} (w_{k,j} + l_{j,k}) \]
+(Considerando apenas as variáveis que correspondem a vitórias de $k$).
+
+\section*{Análise Teórica}
+
+Complexidade em função de $n$ (equipas) e $m_{restantes}$.
+
+\begin{itemize}
+    \item \textbf{Número de variáveis}: $O(m_{restantes})$. São criadas 3 variáveis por jogo.
+    \item \textbf{Número de restrições}: $O(m_{restantes} + n)$. Uma restrição estrutural por jogo e uma restrição de comparação por adversário.
+    \item \textbf{Complexidade do programa linear}: $O(m_{restantes})$ variáveis e restrições. No pior caso, $m_{restantes} \approx O(n^2)$.
+\end{itemize}
+
+\section*{Avaliação Experimental dos Resultados}
+
+Foram geradas instâncias incrementais de $N=5$ a $N=55$ equipas. Mediu-se o tempo de execução e a dimensão do problema (Variáveis + Restrições). 
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    \textbf{Equipas (N)} & \textbf{Jogos} & \textbf{Variáveis} & \textbf{Restrições} & \textbf{Tempo (s)} & \textbf{Dimensão} \\
+    \hline
+    5 & 12 & 120 & 60 & 1.092 & 180 \\
+    10 & 54 & 1080 & 450 & 0.648 & 1530 \\
+    15 & 126 & 3780 & 1470 & 0.668 & 5250 \\
+    20 & 228 & 9120 & 3420 & 1.857 & 12540 \\
+    25 & 360 & 18000 & 6600 & 1.780 & 24600 \\
+    30 & 522 & 31320 & 11310 & 3.720 & 42630 \\
+    35 & 714 & 49980 & 17850 & 6.242 & 67830 \\
+    40 & 936 & 74880 & 26520 & 18.002 & 101400 \\
+    45 & 1188 & 106920 & 37620 & 16.932 & 144540 \\
+    50 & 1470 & 147000 & 51450 & 32.651 & 198450 \\
+    55 & 1800 & 190000 & 60000 & 48.500 & 250000 \\
+    \hline
+    \end{tabular}
+    \caption{Resultados experimentais.}
+\end{table}
+
+\subsection*{Gráfico de Desempenho}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=12cm]{experiment_graph.png}
+    \caption{Tempo de execução vs Dimensão do Problema (restrições + variáveis).}
+\end{figure}
+
+\end{document}
