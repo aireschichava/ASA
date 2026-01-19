@@ -33,6 +33,7 @@ benchmark_results.csv
 timings.csv
 experiment_graph.png
 
-# Generated PDFs (unless final reports)
-# Keeping reports for now if they are final
-# EntregasCaracol/reports/*.pdf
+# Local resources (not for remote)
+Exam prep/
+proj3/passado/
+.github/
